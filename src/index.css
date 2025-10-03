@@ -1,5 +1,5 @@
 /* FONT IMPORTS GO HERE */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@100;200;300;400;500;600;700;800;900&family=Roboto+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Merriweather:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 /* DO NOT CHANGE */
 @import "tailwindcss";
@@ -118,19 +118,19 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    letter-spacing: 0em;
+    letter-spacing: 0.02em;
   }
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, system-ui, sans-serif;
+    font-family: Poppins, system-ui, sans-serif;
   }
   .font-sans {
-    font-family: system-ui, system-ui, sans-serif;
+    font-family: Poppins, system-ui, sans-serif;
   }
   .font-serif {
     font-family: Merriweather, Georgia, serif;
   }
   .font-mono {
-    font-family: Roboto Mono, "Courier New", monospace;
+    font-family: Monaco, "Courier New", monospace;
   }
 }
