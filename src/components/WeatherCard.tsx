@@ -51,56 +51,56 @@ export function WeatherCard({
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
     >
-      <Card className="p-4 bg-[#e0e5ec] border-none shadow-neumorphism hover:shadow-neumorphism-hover transition-all duration-300">
+      <Card className="p-4 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md border-none shadow-neumorphism hover:shadow-neumorphism-hover transition-all duration-300">
         <div className="flex flex-col items-center gap-3">
-          <p className="text-sm font-medium text-gray-600">{time}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{time}</p>
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           >
             {getWeatherIcon()}
           </motion.div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
             {convertTemp(temp)}°{unit}
           </p>
-          <p className="text-xs text-gray-500 text-center">{condition}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{condition}</p>
           
           <div className="w-full mt-2 space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Droplets className="w-3 h-3" /> Precip
               </span>
-              <span className="font-medium text-gray-800">{precipitation}%</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{precipitation}%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Droplets className="w-3 h-3" /> Humidity
               </span>
-              <span className="font-medium text-gray-800">{humidity}%</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{humidity}%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Wind className="w-3 h-3" /> Wind
               </span>
-              <span className="font-medium text-gray-800">{windSpeed} km/h</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{windSpeed} km/h</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Sun className="w-3 h-3" /> UV
               </span>
-              <span className="font-medium text-gray-800">{uvIndex}</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{uvIndex}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Gauge className="w-3 h-3" /> Pressure
               </span>
-              <span className="font-medium text-gray-800">{pressure} mb</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{pressure} mb</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                 <Eye className="w-3 h-3" /> Visibility
               </span>
-              <span className="font-medium text-gray-800">{visibility} km</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{visibility} km</span>
             </div>
           </div>
         </div>

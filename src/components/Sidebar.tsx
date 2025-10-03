@@ -50,7 +50,7 @@ export function Sidebar({
         initial={{ x: "100%" }}
         animate={{ x: isOpen ? 0 : "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="fixed right-0 top-0 h-full w-80 bg-[#e0e5ec] shadow-neumorphism-inset z-50 p-6 overflow-y-auto"
+        className="fixed right-0 top-0 h-full w-80 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md shadow-neumorphism-inset z-50 p-6 overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-bold text-gray-800">Settings</h2>

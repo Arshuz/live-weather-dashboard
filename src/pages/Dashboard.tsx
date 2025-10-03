@@ -127,19 +127,44 @@ export default function Dashboard() {
   // Update suggestions as user types
   useEffect(() => {
     if (!userPreferences) return;
+
+    // Popular fallback cities for pattern-based matching
+    const POPULAR_CITIES: Array<string> = [
+      "New York", "London", "Tokyo", "Sydney", "Paris", "Berlin", "Singapore", "Toronto",
+      "San Francisco", "Los Angeles", "Chicago", "Houston", "Phoenix",
+      "Mumbai", "Delhi", "Bengaluru", "Chennai", "Kolkata",
+      "Dubai", "Abu Dhabi", "Doha", "Riyadh",
+      "Johannesburg", "Cape Town",
+      "Mexico City", "Sao Paulo"
+    ];
+
     const history = userPreferences.searchHistory ?? [];
-    if (searchInput.trim().length === 0) {
-      setSuggestions((prev) => prev.length ? prev : ["Use Current Location", "New York", "London", "Tokyo"]);
-      return;
-    }
-    const filtered = history
-      .filter((item) => item.toLowerCase().includes(searchInput.toLowerCase()))
-      .slice(0, 8);
-    if (filtered.length > 0) {
-      setSuggestions(filtered);
-    } else {
-      setSuggestions(["Use Current Location", searchInput]);
-    }
+
+    const makeSuggestions = (q: string) => {
+      const pool = Array.from(new Set(["Use Current Location", ...history, ...POPULAR_CITIES]));
+      if (q.trim().length === 0) {
+        // Keep existing defaults if any, otherwise provide a random set
+        return pool.slice(0, 8);
+      }
+      // Prioritize startsWith matches, then includes
+      const lower = q.toLowerCase();
+      const starts = pool.filter(
+        (x) => x !== "Use Current Location" && x.toLowerCase().startsWith(lower)
+      );
+      const includes = pool.filter(
+        (x) =>
+          x !== "Use Current Location" &&
+          !starts.includes(x) &&
+          x.toLowerCase().includes(lower)
+      );
+      const base = ["Use Current Location", ...starts, ...includes];
+      // If nothing meaningful found, include the raw query as a suggestion
+      const withQuery =
+        starts.length === 0 && includes.length === 0 ? [...base, q] : base;
+      return withQuery.slice(0, 8);
+    };
+
+    setSuggestions(makeSuggestions(searchInput));
   }, [searchInput, userPreferences]);
 
   const requestLocation = () => {
@@ -385,12 +410,12 @@ export default function Dashboard() {
               />
             </div>
             {suggestionsOpen && suggestions.length > 0 && (
-              <div className="absolute mt-2 left-0 right-0 bg-[#e0e5ec] shadow-neumorphism rounded-md border z-20">
+              <div className="absolute mt-2 left-0 right-0 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md shadow-neumorphism rounded-md border z-20">
                 <ul className="max-h-64 overflow-auto py-2">
                   {suggestions.map((s, i) => (
                     <li
                       key={`${s}-${i}`}
-                      className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-200/40 cursor-pointer"
+                      className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-white/40 dark:hover:bg-white/10 cursor-pointer"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleSuggestionClick(s)}
                     >
@@ -431,36 +456,36 @@ export default function Dashboard() {
               >
                 <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Weather Now</h2>
                 <div className="max-w-2xl mx-auto">
-                  <div className="rounded-2xl p-6 bg-[#e0e5ec] shadow-neumorphism hover:shadow-neumorphism-hover transition-all">
+                  <div className="rounded-2xl p-6 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md shadow-neumorphism hover:shadow-neumorphism-hover transition-all">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="text-center sm:text-left">
-                        <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-800">
+                        <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-800 dark:text-gray-100">
                           {Number(currentData.temp_c ?? 0).toFixed(1)}°{temperatureUnit}
                         </div>
-                        <div className="text-sm text-gray-500 mt-1">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {weatherData?.location?.name ?? "—"}
                         </div>
-                        <div className="text-base sm:text-lg font-medium text-gray-700 mt-1">
+                        <div className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-200 mt-1">
                           {currentData.condition?.text ?? "—"}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-3 w-full sm:w-auto">
-                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
-                          <div className="text-[11px] text-gray-500">Precip</div>
-                          <div className="text-sm font-semibold text-gray-800">
+                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400">Precip</div>
+                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.precip_mm ?? 0)} mm
                           </div>
                         </div>
-                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
-                          <div className="text-[11px] text-gray-500">Humidity</div>
-                          <div className="text-sm font-semibold text-gray-800">
+                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400">Humidity</div>
+                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.humidity ?? 0)}%
                           </div>
                         </div>
-                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
-                          <div className="text-[11px] text-gray-500">Wind</div>
-                          <div className="text-sm font-semibold text-gray-800">
+                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400">Wind</div>
+                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.wind_kph ?? 0)} km/h
                           </div>
                         </div>
