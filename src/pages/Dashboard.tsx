@@ -360,9 +360,9 @@ export default function Dashboard() {
     | undefined;
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "dark bg-[#2c3e50]" : "bg-[#e0e5ec]"} transition-colors duration-300`}>
+    <div className={`min-h-screen ${theme === "dark" ? "dark bg-gradient-to-br from-[#0b1430] via-[#0b1b34] to-[#0a1e3a]" : "bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200"} transition-colors duration-300`}>
       {/* Top Bar */}
-      <div className="sticky top-0 z-30 bg-[#e0e5ec] shadow-neumorphism p-4">
+      <div className="sticky top-0 z-30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-neumorphism p-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-blue-500" />
@@ -429,20 +429,61 @@ export default function Dashboard() {
                 transition={{ duration: 0.4 }}
                 className="mb-8"
               >
-                <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Now</h2>
-                <div className="max-w-md mx-auto">
-                  <WeatherCard
-                    time={"Now"}
-                    temp={Number(currentData.temp_c ?? 0)}
-                    condition={currentData.condition?.text ?? "—"}
-                    precipitation={Number(currentData.precip_mm ?? 0)}
-                    humidity={Number(currentData.humidity ?? 0)}
-                    windSpeed={Number(currentData.wind_kph ?? 0)}
-                    uvIndex={Number(currentData.uv ?? 0)}
-                    pressure={Number(currentData.pressure_mb ?? 0)}
-                    visibility={Number(currentData.vis_km ?? 0)}
-                    unit={temperatureUnit}
-                  />
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Weather Now</h2>
+                <div className="max-w-2xl mx-auto">
+                  <div className="rounded-2xl p-6 bg-[#e0e5ec] shadow-neumorphism hover:shadow-neumorphism-hover transition-all">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="text-center sm:text-left">
+                        <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-800">
+                          {Number(currentData.temp_c ?? 0).toFixed(1)}°{temperatureUnit}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {weatherData?.location?.name ?? "—"}
+                        </div>
+                        <div className="text-base sm:text-lg font-medium text-gray-700 mt-1">
+                          {currentData.condition?.text ?? "—"}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 w-full sm:w-auto">
+                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500">Precip</div>
+                          <div className="text-sm font-semibold text-gray-800">
+                            {Number(currentData.precip_mm ?? 0)} mm
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500">Humidity</div>
+                          <div className="text-sm font-semibold text-gray-800">
+                            {Number(currentData.humidity ?? 0)}%
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-[#e9eef5] shadow-neumorphism-inset p-3 text-center">
+                          <div className="text-[11px] text-gray-500">Wind</div>
+                          <div className="text-sm font-semibold text-gray-800">
+                            {Number(currentData.wind_kph ?? 0)} km/h
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Optional hi/lo similar to Google */}
+                    <div className="mt-4 text-center sm:text-left text-xs text-gray-600">
+                      {(() => {
+                        const max = weatherData?.today?.day?.maxtemp_c as number | undefined;
+                        const min = weatherData?.today?.day?.mintemp_c as number | undefined;
+                        const convert = (c: number | undefined) => {
+                          if (c === undefined) return undefined;
+                          if (temperatureUnit === "F") return (c * 9/5 + 32).toFixed(0);
+                          if (temperatureUnit === "K") return (c + 273.15).toFixed(0);
+                          return c.toFixed(0);
+                        };
+                        const hi = convert(max);
+                        const lo = convert(min);
+                        return (hi !== undefined && lo !== undefined) ? `H: ${hi}°  L: ${lo}°` : null;
+                      })()}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
