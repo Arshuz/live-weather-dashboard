@@ -212,6 +212,7 @@ export default function Dashboard() {
 
       setWeatherData({
         location: todayData?.location,
+        current: todayData?.current,
         today: todayData?.forecast?.forecastday?.[0],
         yesterday: yesterdayData?.forecast?.forecastday?.[0],
         tomorrow: tomorrowData?.forecast?.forecastday?.[1],
@@ -344,6 +345,20 @@ export default function Dashboard() {
 
   const dayData = getCurrentDayData();
 
+  // ADD: derive current data safely
+  const currentData = weatherData?.current as
+    | {
+        temp_c?: number;
+        condition?: { text?: string };
+        precip_mm?: number;
+        humidity?: number;
+        wind_kph?: number;
+        uv?: number;
+        pressure_mb?: number;
+        vis_km?: number;
+      }
+    | undefined;
+
   return (
     <div className={`min-h-screen ${theme === "dark" ? "dark bg-[#2c3e50]" : "bg-[#e0e5ec]"} transition-colors duration-300`}>
       {/* Top Bar */}
@@ -406,6 +421,32 @@ export default function Dashboard() {
           </div>
         ) : weatherData ? (
           <>
+            {/* ADD: Current/Now section with animation */}
+            {currentData && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-8"
+              >
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Now</h2>
+                <div className="max-w-md mx-auto">
+                  <WeatherCard
+                    time={"Now"}
+                    temp={Number(currentData.temp_c ?? 0)}
+                    condition={currentData.condition?.text ?? "—"}
+                    precipitation={Number(currentData.precip_mm ?? 0)}
+                    humidity={Number(currentData.humidity ?? 0)}
+                    windSpeed={Number(currentData.wind_kph ?? 0)}
+                    uvIndex={Number(currentData.uv ?? 0)}
+                    pressure={Number(currentData.pressure_mb ?? 0)}
+                    visibility={Number(currentData.vis_km ?? 0)}
+                    unit={temperatureUnit}
+                  />
+                </div>
+              </motion.div>
+            )}
+
             {/* Day Selector */}
             <div className="flex gap-4 mb-6 justify-center">
               {["yesterday", "today", "tomorrow"].map((day) => (
