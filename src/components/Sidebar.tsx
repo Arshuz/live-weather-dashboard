@@ -66,7 +66,7 @@ export function Sidebar({
 
         <div className="space-y-6">
           {/* Theme Toggle */}
-          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+          <div className="p-4 rounded-lg shadow-neumorphism-inset bg-white/60 dark:bg-slate-900/50 backdrop-blur-md">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 {theme === "light" ? (
@@ -87,7 +87,7 @@ export function Sidebar({
           </div>
 
           {/* Temperature Unit */}
-          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+          <div className="p-4 rounded-lg shadow-neumorphism-inset bg-white/60 dark:bg-slate-900/50 backdrop-blur-md">
             <div className="flex items-center gap-2 mb-3">
               <Thermometer className="w-5 h-5 text-red-500" />
               <span className="font-medium text-gray-800">Temperature Unit</span>
@@ -105,7 +105,7 @@ export function Sidebar({
           </div>
 
           {/* Theme Presets */}
-          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+          <div className="p-4 rounded-lg shadow-neumorphism-inset bg-white/60 dark:bg-slate-900/50 backdrop-blur-md">
             <div className="flex items-center justify-between mb-3">
               <span className="font-medium text-gray-800">Theme Preset</span>
             </div>
@@ -181,7 +181,7 @@ export function Sidebar({
           </div>
 
           {/* API Key Section */}
-          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+          <div className="p-4 rounded-lg shadow-neumorphism-inset bg-white/60 dark:bg-slate-900/50 backdrop-blur-md">
             <h3 className="font-medium text-gray-800 mb-2">Weather API Key</h3>
             <p className="text-xs text-gray-600 mb-3">
               Paste your WeatherAPI.com key. It will be saved for future sessions.
@@ -223,7 +223,7 @@ export function Sidebar({
           </div>
 
           {/* About Section */}
-          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+          <div className="p-4 rounded-lg shadow-neumorphism-inset bg-white/60 dark:bg-slate-900/50 backdrop-blur-md">
             <h3 className="font-medium text-gray-800 mb-2">About</h3>
             <p className="text-xs text-gray-600 mb-2">
               Live Weather Dashboard

@@ -370,6 +370,14 @@ export default function Dashboard() {
     toast.success("Custom theme saved");
   };
 
+  // Add: temperature conversion helper for Weather Now
+  const convertTemp = (celsius: number | undefined) => {
+    if (celsius === undefined) return "—";
+    if (temperatureUnit === "F") return (celsius * 9 / 5 + 32).toFixed(1);
+    if (temperatureUnit === "K") return (celsius + 273.15).toFixed(1);
+    return celsius.toFixed(1);
+  };
+
   const getCurrentDayData = () => {
     if (!weatherData) return null;
     return weatherData[selectedDay];
@@ -496,7 +504,7 @@ export default function Dashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="text-center sm:text-left">
                         <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-800 dark:text-gray-100">
-                          {Number(currentData.temp_c ?? 0).toFixed(1)}°{temperatureUnit}
+                          {convertTemp(currentData.temp_c)}°{temperatureUnit}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {weatherData?.location?.name ?? "—"}
@@ -507,19 +515,19 @@ export default function Dashboard() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-3 w-full sm:w-auto">
-                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                        <div className="rounded-lg bg-white/50 dark:bg-slate-800/60 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
                           <div className="text-[11px] text-gray-500 dark:text-gray-400">Precip</div>
                           <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.precip_mm ?? 0)} mm
                           </div>
                         </div>
-                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                        <div className="rounded-lg bg-white/50 dark:bg-slate-800/60 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
                           <div className="text-[11px] text-gray-500 dark:text-gray-400">Humidity</div>
                           <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.humidity ?? 0)}%
                           </div>
                         </div>
-                        <div className="rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
+                        <div className="rounded-lg bg-white/50 dark:bg-slate-800/60 backdrop-blur-sm shadow-neumorphism-inset p-3 text-center">
                           <div className="text-[11px] text-gray-500 dark:text-gray-400">Wind</div>
                           <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             {Number(currentData.wind_kph ?? 0)} km/h
