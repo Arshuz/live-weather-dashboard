@@ -40,6 +40,8 @@ export default function Dashboard() {
   // Add: search suggestions state
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<string>>([]);
+  // Add: active index for keyboard navigation in suggestions
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const savePreferences = useMutation(api.weather.saveUserPreferences);
   const userPreferences = useQuery(api.weather.getUserPreferences, { userId });
@@ -254,6 +256,11 @@ export default function Dashboard() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (suggestionsOpen && activeIndex >= 0 && activeIndex < suggestions.length) {
+      // If a suggestion is highlighted, use it
+      handleSuggestionClick(suggestions[activeIndex]);
+      return;
+    }
     let query = searchInput.trim();
     if (!query) return;
     if (query === "Use Current Location") {
@@ -392,7 +399,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-blue-500" />
             <span className="font-medium text-gray-800">
-              {weatherData?.location?.name || "Loading..."}
+              Dashboard
             </span>
           </div>
 
@@ -403,20 +410,49 @@ export default function Dashboard() {
                 type="text"
                 placeholder="Search location..."
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setActiveIndex(-1); // reset highlight when typing
+                }}
                 onFocus={() => setSuggestionsOpen(true)}
                 onBlur={() => setTimeout(() => setSuggestionsOpen(false), 150)}
+                onKeyDown={(e) => {
+                  if (!suggestionsOpen || suggestions.length === 0) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIndex((prev) =>
+                      prev < suggestions.length - 1 ? prev + 1 : 0
+                    );
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIndex((prev) =>
+                      prev > 0 ? prev - 1 : suggestions.length - 1
+                    );
+                  } else if (e.key === "Enter") {
+                    if (activeIndex >= 0 && activeIndex < suggestions.length) {
+                      e.preventDefault();
+                      handleSuggestionClick(suggestions[activeIndex]);
+                    }
+                  } else if (e.key === "Escape") {
+                    setSuggestionsOpen(false);
+                  }
+                }}
                 className="pl-10 shadow-neumorphism-inset border-none"
               />
             </div>
             {suggestionsOpen && suggestions.length > 0 && (
-              <div className="absolute mt-2 left-0 right-0 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md shadow-neumorphism rounded-md border z-20">
+              <div className="absolute mt-2 left-0 right-0 bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg shadow-neumorphism rounded-md border z-20">
                 <ul className="max-h-64 overflow-auto py-2">
                   {suggestions.map((s, i) => (
                     <li
                       key={`${s}-${i}`}
-                      className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-white/40 dark:hover:bg-white/10 cursor-pointer"
+                      className={`px-3 py-2 text-sm text-gray-700 dark:text-gray-200 cursor-pointer ${
+                        i === activeIndex
+                          ? "bg-white/70 dark:bg-white/15"
+                          : "hover:bg-white/50 dark:hover:bg-white/10"
+                      }`}
                       onMouseDown={(e) => e.preventDefault()}
+                      onMouseEnter={() => setActiveIndex(i)}
                       onClick={() => handleSuggestionClick(s)}
                     >
                       {s}
