@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Menu, Search, Loader2 } from "lucide-react";
+import { CloudSun, Menu, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WeatherCard } from "@/components/WeatherCard";
@@ -405,7 +405,7 @@ export default function Dashboard() {
       <div className="sticky top-0 z-30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-neumorphism p-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-500" />
+            <CloudSun className="w-5 h-5 text-blue-500" />
             <span className="font-medium text-gray-800">
               Dashboard
             </span>
