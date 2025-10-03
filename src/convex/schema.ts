@@ -36,6 +36,18 @@ const schema = defineSchema(
       latitude: v.optional(v.number()),
       longitude: v.optional(v.number()),
       apiKey: v.optional(v.string()),
+      themePreset: v.optional(v.union(
+        v.literal("sunny"),
+        v.literal("cloudy"),
+        v.literal("rainy"),
+        v.literal("custom")
+      )),
+      customTheme: v.optional(v.object({
+        background: v.optional(v.string()),
+        foreground: v.optional(v.string()),
+        primary: v.optional(v.string()),
+      })),
+      searchHistory: v.optional(v.array(v.string())),
     }).index("by_userId", ["userId"]),
 
     weatherCache: defineTable({

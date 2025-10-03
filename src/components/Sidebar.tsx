@@ -14,6 +14,10 @@ interface SidebarProps {
   onTemperatureUnitChange: (unit: "C" | "F" | "K") => void;
   apiKey?: string;
   onApiKeySave: (key: string) => void;
+  themePreset?: "sunny" | "cloudy" | "rainy" | "custom";
+  onThemePresetChange?: (preset: "sunny" | "cloudy" | "rainy" | "custom") => void;
+  customTheme?: { background?: string; foreground?: string; primary?: string };
+  onCustomThemeSave?: (custom: { background?: string; foreground?: string; primary?: string }) => void;
 }
 
 export function Sidebar({
@@ -25,6 +29,10 @@ export function Sidebar({
   onTemperatureUnitChange,
   apiKey,
   onApiKeySave,
+  themePreset,
+  onThemePresetChange,
+  customTheme,
+  onCustomThemeSave,
 }: SidebarProps) {
   return (
     <>
@@ -94,6 +102,82 @@ export function Sidebar({
                 <SelectItem value="K">Kelvin (K)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Theme Presets */}
+          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-medium text-gray-800">Theme Preset</span>
+            </div>
+            <Select
+              value={themePreset ?? "sunny"}
+              onValueChange={(value) =>
+                onThemePresetChange && onThemePresetChange(value as "sunny" | "cloudy" | "rainy" | "custom")
+              }
+            >
+              <SelectTrigger className="w-full shadow-neumorphism">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sunny">Sunny</SelectItem>
+                <SelectItem value="cloudy">Cloudy</SelectItem>
+                <SelectItem value="rainy">Rainy</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {themePreset === "custom" && (
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="text-[11px] text-gray-600 mb-1">Background</p>
+                    <Input
+                      type="text"
+                      placeholder="e.g. #e0e5ec"
+                      defaultValue={customTheme?.background ?? ""}
+                      className="shadow-neumorphism-inset"
+                      onBlur={(e) => {
+                        const updated = { ...customTheme, background: e.currentTarget.value || undefined };
+                        onCustomThemeSave && onCustomThemeSave(updated);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-600 mb-1">Foreground</p>
+                    <Input
+                      type="text"
+                      placeholder="e.g. #2c3e50"
+                      defaultValue={customTheme?.foreground ?? ""}
+                      className="shadow-neumorphism-inset"
+                      onBlur={(e) => {
+                        const updated = { ...customTheme, foreground: e.currentTarget.value || undefined };
+                        onCustomThemeSave && onCustomThemeSave(updated);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-600 mb-1">Primary</p>
+                    <Input
+                      type="text"
+                      placeholder="e.g. #4f46e5"
+                      defaultValue={customTheme?.primary ?? ""}
+                      className="shadow-neumorphism-inset"
+                      onBlur={(e) => {
+                        const updated = { ...customTheme, primary: e.currentTarget.value || undefined };
+                        onCustomThemeSave && onCustomThemeSave(updated);
+                      }}
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="shadow-neumorphism w-full"
+                  onClick={() => onCustomThemeSave && onCustomThemeSave(customTheme ?? {})}
+                >
+                  Save Custom Preset
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* API Key Section */}

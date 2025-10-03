@@ -33,8 +33,42 @@ export default function Dashboard() {
   const [userId] = useState(() => localStorage.getItem("weatherUserId") || `user_${Date.now()}`);
   const [apiKey, setApiKey] = useState<string | undefined>(undefined);
 
+  // Add: theme presets and custom theme state
+  const [themePreset, setThemePreset] = useState<"sunny" | "cloudy" | "rainy" | "custom">("sunny");
+  const [customTheme, setCustomTheme] = useState<{ background?: string; foreground?: string; primary?: string } | undefined>(undefined);
+
+  // Add: search suggestions state
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<string>>([]);
+
   const savePreferences = useMutation(api.weather.saveUserPreferences);
   const userPreferences = useQuery(api.weather.getUserPreferences, { userId });
+
+  // Helper: apply preset colors to CSS variables
+  const applyPreset = (preset: "sunny" | "cloudy" | "rainy" | "custom", custom?: { background?: string; foreground?: string; primary?: string }) => {
+    const root = document.documentElement;
+    const palettes: Record<string, { background: string; foreground: string; primary: string }> = {
+      sunny: { background: "#e9f5ff", foreground: "#1f2937", primary: "#f59e0b" },
+      cloudy: { background: "#e0e5ec", foreground: "#2c3e50", primary: "#64748b" },
+      rainy: { background: "#dbeafe", foreground: "#0f172a", primary: "#3b82f6" },
+    };
+    let p = preset === "custom"
+      ? {
+          background: custom?.background || getComputedStyle(root).getPropertyValue("--background").trim() || "#e0e5ec",
+          foreground: custom?.foreground || getComputedStyle(root).getPropertyValue("--foreground").trim() || "#2c3e50",
+          primary: custom?.primary || getComputedStyle(root).getPropertyValue("--primary").trim() || "#4f46e5",
+        }
+      : palettes[preset];
+
+    root.style.setProperty("--background", p.background);
+    root.style.setProperty("--card", p.background);
+    root.style.setProperty("--popover", p.background);
+    root.style.setProperty("--foreground", p.foreground);
+    root.style.setProperty("--card-foreground", p.foreground);
+    root.style.setProperty("--popover-foreground", p.foreground);
+    root.style.setProperty("--primary", p.primary);
+    // keep --primary-foreground as is for contrast
+  };
 
   useEffect(() => {
     localStorage.setItem("weatherUserId", userId);
@@ -54,9 +88,25 @@ export default function Dashboard() {
         setLocation(userPreferences.location);
         fetchWeatherData(userPreferences.location);
       }
+      // Load theme preset + custom
+      if (userPreferences.themePreset) {
+        setThemePreset(userPreferences.themePreset);
+        applyPreset(userPreferences.themePreset, userPreferences.customTheme ?? undefined);
+      }
+      if (userPreferences.customTheme) {
+        setCustomTheme(userPreferences.customTheme);
+      }
+      // Initialize suggestions from history or defaults
+      if (userPreferences.searchHistory && userPreferences.searchHistory.length > 0) {
+        setSuggestions(userPreferences.searchHistory.slice(0, 8));
+      } else {
+        setSuggestions(["Use Current Location", "New York", "London", "Tokyo", "Sydney"].sort(() => 0.5 - Math.random()).slice(0, 4));
+      }
     } else if (userPreferences === null) {
       const localApiKey = localStorage.getItem("weatherApiKey") || undefined;
       if (localApiKey) setApiKey(localApiKey);
+      // Default suggestions when no prefs exist
+      setSuggestions(["Use Current Location", "Paris", "Berlin", "Singapore", "Toronto"].sort(() => 0.5 - Math.random()).slice(0, 4));
     }
   }, [userPreferences]);
 
@@ -73,6 +123,24 @@ export default function Dashboard() {
   const resolveApiKey = () => {
     return apiKey || import.meta.env.VITE_WEATHER_API_KEY || "";
   };
+
+  // Update suggestions as user types
+  useEffect(() => {
+    if (!userPreferences) return;
+    const history = userPreferences.searchHistory ?? [];
+    if (searchInput.trim().length === 0) {
+      setSuggestions((prev) => prev.length ? prev : ["Use Current Location", "New York", "London", "Tokyo"]);
+      return;
+    }
+    const filtered = history
+      .filter((item) => item.toLowerCase().includes(searchInput.toLowerCase()))
+      .slice(0, 8);
+    if (filtered.length > 0) {
+      setSuggestions(filtered);
+    } else {
+      setSuggestions(["Use Current Location", searchInput]);
+    }
+  }, [searchInput, userPreferences]);
 
   const requestLocation = () => {
     if (navigator.geolocation) {
@@ -91,6 +159,8 @@ export default function Dashboard() {
             longitude,
             location: coords,
             apiKey,
+            themePreset,
+            customTheme,
           });
         },
         (error) => {
@@ -99,6 +169,21 @@ export default function Dashboard() {
         }
       );
     }
+  };
+
+  const persistSearchHistory = (newEntry: string) => {
+    const current = userPreferences?.searchHistory ?? [];
+    const updated = [newEntry, ...current.filter((v) => v.toLowerCase() !== newEntry.toLowerCase())].slice(0, 10);
+    savePreferences({
+      userId,
+      temperatureUnit,
+      theme,
+      location,
+      apiKey,
+      themePreset,
+      customTheme,
+      searchHistory: updated,
+    });
   };
 
   const fetchWeatherData = async (loc: string) => {
@@ -126,10 +211,10 @@ export default function Dashboard() {
       ]);
 
       setWeatherData({
-        location: todayData.location,
-        today: todayData.forecast.forecastday[0],
-        yesterday: yesterdayData.forecast.forecastday[0],
-        tomorrow: tomorrowData.forecast.forecastday[1],
+        location: todayData?.location,
+        today: todayData?.forecast?.forecastday?.[0],
+        yesterday: yesterdayData?.forecast?.forecastday?.[0],
+        tomorrow: tomorrowData?.forecast?.forecastday?.[1],
       });
 
       toast.success("Weather data updated!");
@@ -143,18 +228,41 @@ export default function Dashboard() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchInput.trim()) {
-      setLocation(searchInput);
-      localStorage.setItem("weatherLocation", searchInput);
-      fetchWeatherData(searchInput);
-      savePreferences({
-        userId,
-        temperatureUnit,
-        theme,
-        location: searchInput,
-        apiKey,
-      });
+    let query = searchInput.trim();
+    if (!query) return;
+    if (query === "Use Current Location") {
+      requestLocation();
+      setSuggestionsOpen(false);
+      return;
     }
+    setLocation(query);
+    localStorage.setItem("weatherLocation", query);
+    fetchWeatherData(query);
+    persistSearchHistory(query);
+    savePreferences({
+      userId,
+      temperatureUnit,
+      theme,
+      location: query,
+      apiKey,
+      themePreset,
+      customTheme,
+    });
+    setSuggestionsOpen(false);
+  };
+
+  const handleSuggestionClick = (s: string) => {
+    if (s === "Use Current Location") {
+      requestLocation();
+      setSuggestionsOpen(false);
+      return;
+    }
+    setSearchInput(s);
+    setLocation(s);
+    localStorage.setItem("weatherLocation", s);
+    fetchWeatherData(s);
+    persistSearchHistory(s);
+    setSuggestionsOpen(false);
   };
 
   const handleThemeChange = (newTheme: "light" | "dark") => {
@@ -165,6 +273,8 @@ export default function Dashboard() {
       theme: newTheme,
       location,
       apiKey,
+      themePreset,
+      customTheme,
     });
   };
 
@@ -176,6 +286,8 @@ export default function Dashboard() {
       theme,
       location,
       apiKey,
+      themePreset,
+      customTheme,
     });
   };
 
@@ -188,8 +300,41 @@ export default function Dashboard() {
       theme,
       location,
       apiKey: key,
+      themePreset,
+      customTheme,
     });
     toast.success("API key saved.");
+  };
+
+  // New: handlers for theme presets and custom theme saving
+  const handleThemePresetChange = (preset: "sunny" | "cloudy" | "rainy" | "custom") => {
+    setThemePreset(preset);
+    applyPreset(preset, customTheme);
+    savePreferences({
+      userId,
+      temperatureUnit,
+      theme,
+      location,
+      apiKey,
+      themePreset: preset,
+      customTheme,
+    });
+    toast("Theme preset applied");
+  };
+
+  const handleCustomThemeSave = (custom: { background?: string; foreground?: string; primary?: string }) => {
+    setCustomTheme(custom);
+    applyPreset("custom", custom);
+    savePreferences({
+      userId,
+      temperatureUnit,
+      theme,
+      location,
+      apiKey,
+      themePreset: "custom",
+      customTheme: custom,
+    });
+    toast.success("Custom theme saved");
   };
 
   const getCurrentDayData = () => {
@@ -211,7 +356,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-md">
+          <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <Input
@@ -219,9 +364,27 @@ export default function Dashboard() {
                 placeholder="Search location..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setSuggestionsOpen(true)}
+                onBlur={() => setTimeout(() => setSuggestionsOpen(false), 150)}
                 className="pl-10 shadow-neumorphism-inset border-none"
               />
             </div>
+            {suggestionsOpen && suggestions.length > 0 && (
+              <div className="absolute mt-2 left-0 right-0 bg-[#e0e5ec] shadow-neumorphism rounded-md border z-20">
+                <ul className="max-h-64 overflow-auto py-2">
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={`${s}-${i}`}
+                      className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-200/40 cursor-pointer"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleSuggestionClick(s)}
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </form>
 
           <Button
@@ -304,6 +467,11 @@ export default function Dashboard() {
         onTemperatureUnitChange={handleTemperatureUnitChange}
         apiKey={apiKey}
         onApiKeySave={handleApiKeySave}
+        // New props for theme presets
+        themePreset={themePreset}
+        onThemePresetChange={handleThemePresetChange}
+        customTheme={customTheme}
+        onCustomThemeSave={handleCustomThemeSave}
       />
     </div>
   );
