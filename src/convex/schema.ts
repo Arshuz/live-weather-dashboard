@@ -35,6 +35,7 @@ const schema = defineSchema(
       location: v.optional(v.string()),
       latitude: v.optional(v.number()),
       longitude: v.optional(v.number()),
+      apiKey: v.optional(v.string()),
     }).index("by_userId", ["userId"]),
 
     weatherCache: defineTable({

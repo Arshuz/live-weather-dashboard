@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [temperatureUnit, setTemperatureUnit] = useState<"C" | "F" | "K">("C");
   const [selectedDay, setSelectedDay] = useState<"yesterday" | "today" | "tomorrow">("today");
   const [userId] = useState(() => localStorage.getItem("weatherUserId") || `user_${Date.now()}`);
+  const [apiKey, setApiKey] = useState<string | undefined>(undefined);
 
   const savePreferences = useMutation(api.weather.saveUserPreferences);
   const userPreferences = useQuery(api.weather.getUserPreferences, { userId });
@@ -43,10 +44,19 @@ export default function Dashboard() {
     if (userPreferences) {
       setTheme(userPreferences.theme);
       setTemperatureUnit(userPreferences.temperatureUnit);
+      if (userPreferences.apiKey) {
+        setApiKey(userPreferences.apiKey);
+      } else {
+        const localApiKey = localStorage.getItem("weatherApiKey") || undefined;
+        if (localApiKey) setApiKey(localApiKey);
+      }
       if (userPreferences.location) {
         setLocation(userPreferences.location);
         fetchWeatherData(userPreferences.location);
       }
+    } else if (userPreferences === null) {
+      const localApiKey = localStorage.getItem("weatherApiKey") || undefined;
+      if (localApiKey) setApiKey(localApiKey);
     }
   }, [userPreferences]);
 
@@ -59,6 +69,10 @@ export default function Dashboard() {
       requestLocation();
     }
   }, []);
+
+  const resolveApiKey = () => {
+    return apiKey || import.meta.env.VITE_WEATHER_API_KEY || "";
+  };
 
   const requestLocation = () => {
     if (navigator.geolocation) {
@@ -76,6 +90,7 @@ export default function Dashboard() {
             latitude,
             longitude,
             location: coords,
+            apiKey,
           });
         },
         (error) => {
@@ -89,8 +104,13 @@ export default function Dashboard() {
   const fetchWeatherData = async (loc: string) => {
     setLoading(true);
     try {
-      const apiKey = import.meta.env.VITE_WEATHER_API_KEY || "YOUR_API_KEY_HERE";
-      
+      const key = resolveApiKey();
+      if (!key) {
+        toast.error("Please enter your Weather API key in Settings.");
+        setLoading(false);
+        return;
+      }
+
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -100,9 +120,9 @@ export default function Dashboard() {
       const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
       const [todayData, yesterdayData, tomorrowData] = await Promise.all([
-        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${loc}&days=1&aqi=yes`).then(r => r.json()),
-        fetch(`https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${loc}&dt=${formatDate(yesterday)}`).then(r => r.json()),
-        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${loc}&days=2&aqi=yes`).then(r => r.json()),
+        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${key}&q=${loc}&days=1&aqi=yes`).then(r => r.json()),
+        fetch(`https://api.weatherapi.com/v1/history.json?key=${key}&q=${loc}&dt=${formatDate(yesterday)}`).then(r => r.json()),
+        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${key}&q=${loc}&days=2&aqi=yes`).then(r => r.json()),
       ]);
 
       setWeatherData({
@@ -132,6 +152,7 @@ export default function Dashboard() {
         temperatureUnit,
         theme,
         location: searchInput,
+        apiKey,
       });
     }
   };
@@ -143,6 +164,7 @@ export default function Dashboard() {
       temperatureUnit,
       theme: newTheme,
       location,
+      apiKey,
     });
   };
 
@@ -153,7 +175,21 @@ export default function Dashboard() {
       temperatureUnit: unit,
       theme,
       location,
+      apiKey,
     });
+  };
+
+  const handleApiKeySave = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem("weatherApiKey", key);
+    savePreferences({
+      userId,
+      temperatureUnit,
+      theme,
+      location,
+      apiKey: key,
+    });
+    toast.success("API key saved.");
   };
 
   const getCurrentDayData = () => {
@@ -266,6 +302,8 @@ export default function Dashboard() {
         onThemeChange={handleThemeChange}
         temperatureUnit={temperatureUnit}
         onTemperatureUnitChange={handleTemperatureUnitChange}
+        apiKey={apiKey}
+        onApiKeySave={handleApiKeySave}
       />
     </div>
   );

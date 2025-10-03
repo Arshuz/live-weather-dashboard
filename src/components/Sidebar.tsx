@@ -3,6 +3,7 @@ import { X, Sun, Moon, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface SidebarProps {
   onThemeChange: (theme: "light" | "dark") => void;
   temperatureUnit: "C" | "F" | "K";
   onTemperatureUnitChange: (unit: "C" | "F" | "K") => void;
+  apiKey?: string;
+  onApiKeySave: (key: string) => void;
 }
 
 export function Sidebar({
@@ -20,6 +23,8 @@ export function Sidebar({
   onThemeChange,
   temperatureUnit,
   onTemperatureUnitChange,
+  apiKey,
+  onApiKeySave,
 }: SidebarProps) {
   return (
     <>
@@ -89,6 +94,48 @@ export function Sidebar({
                 <SelectItem value="K">Kelvin (K)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* API Key Section */}
+          <div className="p-4 rounded-lg shadow-neumorphism-inset">
+            <h3 className="font-medium text-gray-800 mb-2">Weather API Key</h3>
+            <p className="text-xs text-gray-600 mb-3">
+              Paste your WeatherAPI.com key. It will be saved for future sessions.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                type="password"
+                placeholder="Enter API Key"
+                defaultValue={apiKey ?? ""}
+                className="shadow-neumorphism-inset"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const val = (e.target as HTMLInputElement).value.trim();
+                    if (val) onApiKeySave(val);
+                  }
+                }}
+              />
+              <Button
+                variant="outline"
+                className="shadow-neumorphism"
+                onClick={() => {
+                  const el = (document.activeElement as HTMLInputElement) || null;
+                  const container = (e?: Event) => {
+                    // no-op, just ensures types
+                  };
+                  // Find the closest input in this section
+                  const parent = (document.activeElement as HTMLElement)?.closest("div");
+                  const input = parent?.querySelector("input") as HTMLInputElement | null;
+                  const val = input?.value.trim() || "";
+                  if (val) onApiKeySave(val);
+                }}
+              >
+                Save
+              </Button>
+            </div>
+            <p className="text-[10px] text-gray-500 mt-2">
+              Tip: You can create a free key at weatherapi.com.
+            </p>
           </div>
 
           {/* About Section */}

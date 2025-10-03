@@ -10,6 +10,7 @@ export const saveUserPreferences = mutation({
     location: v.optional(v.string()),
     latitude: v.optional(v.number()),
     longitude: v.optional(v.number()),
+    apiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -24,6 +25,7 @@ export const saveUserPreferences = mutation({
         location: args.location,
         latitude: args.latitude,
         longitude: args.longitude,
+        apiKey: args.apiKey,
       });
       return existing._id;
     } else {
@@ -34,6 +36,7 @@ export const saveUserPreferences = mutation({
         location: args.location,
         latitude: args.latitude,
         longitude: args.longitude,
+        apiKey: args.apiKey,
       });
     }
   },
